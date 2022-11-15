@@ -8,6 +8,9 @@ from playsound import playsound
 import threading  # 키워드 이후 아무런 명령이 없다면 다시 처음으로 돌아가도록
 
 isCall = False  # 호출어가 명령된 상태인지 확인
+power = True  # 스피커의 전원에 해당
+r = sr.Recognizer()
+# = sr.Microphone()  # 마이크에 해당
 
 
 def listen(recognizer, audio):  # 음성 인식 (듣기 )
@@ -24,7 +27,7 @@ def listen(recognizer, audio):  # 음성 인식 (듣기 )
 
 
 def answer(input_text):  # 어떤 대답을 할것인지 정의
-    global isCall
+    global isCall, power
     answer_text = ''  # 컴퓨터가 대답할 말 key값이 들어갔다면 출력되도록
     if '안녕' in input_text:
         answer_text = "안녕하세요? 반갑습니다."
@@ -37,11 +40,13 @@ def answer(input_text):  # 어떤 대답을 할것인지 정의
     elif '종료' in input_text:
         answer_text = "다음에 또 만나요."
         isCall = False
+        power = False
         # stop_listening(wait_for_stop=False)  # 더이상 듣지 않음
     elif '자비스' in input_text:
         answer_text = "부르셨나요?"
     else:
         answer_text = "잘 이해하지 못했어요."
+
     speak(answer_text)
 
 
@@ -55,20 +60,13 @@ def speak(text):  # 소리내어 읽기 (TTS)
         os.remove(file_name)  # 실행 이후 mp3 파일 제거
 
 
-r = sr.Recognizer()
-m = sr.Microphone()
-
-#speak('무엇을 도와드릴까요?')
-
-#print("program start!")
-
-
 def reset_mode():
     global isCall
     print("다시 시도하세요")
     isCall = False
 
 
+# 스피커가 동작하는 공간
 while True:
     print("program start!")
     with sr.Microphone() as source:  # 마이크에서 들리는 음성(source)을 listen을 통해 들음
@@ -101,3 +99,6 @@ while True:
         with sr.Microphone() as source:
             command = r.listen(source)  # 마이크로부터 음성 듣기
             listen(r, command)
+
+# 계속 귀를 열어둠 m(마이크)를 통해 듣다가 내가 정의한 listen함수 호출
+# stop_listening = r.listen_in_background(m, listen)  # listen 함수 호출
