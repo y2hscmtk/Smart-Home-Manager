@@ -1,4 +1,4 @@
-# TTS와 STT를 활용한 인공지능과 대화하기
+# AI Speaker의 역할을 하는 부분
 
 import time
 import os  # 프로그램 종료 방지용
@@ -13,8 +13,10 @@ def listen(recognizer, audio):  # 음성 인식 (듣기 )
         print("[User] " + text)
         answer(text)
     except sr.UnknownValueError:
+        speak("잘 듣지 못했어요")
         print("인식 실패")  # 음성 인식이 실패한 경우
     except sr.RequestError as e:  # 네트워크 등의 이유로 연결이 제대로 안됐을경우 API Key 오류, 네트워크 단절 등
+        speak("네트워크 상태를 확인해주세요")
         print("요청 실패 : {0}".format(e))  # 에러형식 출력
     pass
 
