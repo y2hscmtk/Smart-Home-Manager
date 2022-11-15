@@ -24,7 +24,7 @@ def handle_message(msg):
     global cmd_mode
     print(my_list, cmd_mode)
     if cmd_mode:  # 현재 입력된 명령이 cmd명령인지 아닌지 확인
-        if check_item(my_list, 'time'):
+        if check_item(my_list, "안녕"):
             now = datetime.datetime.now()
             say_message("지금은 %d시 %d분입니다." % (now.hour, now.minute))
     else:

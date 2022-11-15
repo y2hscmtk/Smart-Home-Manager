@@ -1,10 +1,13 @@
-# AI Speaker의 역할을 하는 부분
+# TTS와 STT를 활용한 인공지능과 대화하기
 
 import time
 import os  # 프로그램 종료 방지용
 import speech_recognition as sr
 from gtts import gTTS
 from playsound import playsound
+import threading  # 키워드 이후 아무런 명령이 없다면 다시 처음으로 돌아가도록
+
+isCall = False  # 호출어가 명령된 상태인지 확인
 
 
 def listen(recognizer, audio):  # 음성 인식 (듣기 )
@@ -13,15 +16,15 @@ def listen(recognizer, audio):  # 음성 인식 (듣기 )
         print("[User] " + text)
         answer(text)
     except sr.UnknownValueError:
-        speak("잘 듣지 못했어요")
         print("인식 실패")  # 음성 인식이 실패한 경우
+        speak("잘 듣지 못했어요")
     except sr.RequestError as e:  # 네트워크 등의 이유로 연결이 제대로 안됐을경우 API Key 오류, 네트워크 단절 등
-        speak("네트워크 상태를 확인해주세요")
         print("요청 실패 : {0}".format(e))  # 에러형식 출력
     pass
 
 
 def answer(input_text):  # 어떤 대답을 할것인지 정의
+    global isCall
     answer_text = ''  # 컴퓨터가 대답할 말 key값이 들어갔다면 출력되도록
     if '안녕' in input_text:
         answer_text = "안녕하세요? 반갑습니다."
@@ -33,7 +36,8 @@ def answer(input_text):  # 어떤 대답을 할것인지 정의
         answer_text = "별 말씀을요."
     elif '종료' in input_text:
         answer_text = "다음에 또 만나요."
-        stop_listening(wait_for_stop=False)  # 더이상 듣지 않음
+        isCall = False
+        # stop_listening(wait_for_stop=False)  # 더이상 듣지 않음
     elif '자비스' in input_text:
         answer_text = "부르셨나요?"
     else:
@@ -54,11 +58,46 @@ def speak(text):  # 소리내어 읽기 (TTS)
 r = sr.Recognizer()
 m = sr.Microphone()
 
-speak('무엇을 도와드릴까요?')
+#speak('무엇을 도와드릴까요?')
 
-# 계속 귀를 열어둠 m(마이크)를 통해 듣다가 내가 정의한 listen함수 호출
-stop_listening = r.listen_in_background(m, listen)  # listen 함수 호출
+#print("program start!")
 
-# 프로그램 종료 방지
+
+def reset_mode():
+    global isCall
+    print("다시 시도하세요")
+    isCall = False
+
+
 while True:
-    time.sleep(0.1)
+    print("program start!")
+    with sr.Microphone() as source:  # 마이크에서 들리는 음성(source)을 listen을 통해 들음
+        print('듣고 있어요')  # 잠깐의 대기 시간이 있으므로 확인용으로 텍스트 출력
+        callName = r.listen(source)  # 마이크로부터 호출어 듣기
+        text = 0  # 예외처리문 밖에서도 이용하기 위해
+        # 호출어에 대한 예외처리
+        try:
+            # 구글 API 로 인식 (하루 50회만 허용)
+            # 영어는 language = 'en-US
+            text = r. recognize_google(callName, language='ko')  # 영어 음성으로 변환
+            print(text)
+        except sr.UnknownValueError:
+            print("인식 실패")  # 음성 인식이 실패한 경우
+        except sr.RequestError as e:  # 네트워크 등의 이유로 연결이 제대로 안됐을경우 API Key 오류, 네트워크 단절 등
+            print("요청 실패 : {0}".format(e))  # 에러형식 출력
+
+        if "자비스" in text:  # 음성이 키워드일때 명령을 할수있게 변경
+            isCall = True
+            speak("안녕하세요!")
+
+            # 아무 명령을 하지 않더라도, 20초가 지나면 명령 권한 회수
+            start_time = threading.Timer(20, reset_mode)  # 20초후 reset
+            start_time.start()
+        else:
+            continue
+
+    # 명령 권한이 있는 상태에서는 계속 명령을 받을 수 있음
+    while isCall:
+        with sr.Microphone() as source:
+            command = r.listen(source)  # 마이크로부터 음성 듣기
+            listen(r, command)
