@@ -5,7 +5,7 @@ import os  # 프로그램 종료 방지용
 import speech_recognition as sr
 from gtts import gTTS
 from playsound import playsound
-import threading  # 키워드 이후 아무런 명령이 없다면 다시 처음으로 돌아가도록
+import threading  # 호출어 이후, 일정시간의 대기시간이 지나면 명령권한 회수
 
 isCall = False  # 호출어가 명령된 상태인지 확인
 power = True  # 스피커의 전원에 해당
