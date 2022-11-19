@@ -29,13 +29,14 @@ def onConnect(client, userdata, flag, rc):
 
 
 def onMessage(client, userdata, msg):
-    global distanceLabel, wait
+    # global distanceLabel
     command = str(msg.payload.decode("utf-8"))  # 소수점 제거
     # 이미지 데이터가 바이트 배열로 도착, 이것은 보내는쪽에서 바이트배열로 보내야함을 의미함
     if (msg.topic == "temperature"):
         #print("현재 날씨 " + command)
         speak("현재 날씨는 " + command + "도 입니다.")
-        wait = True  # 다시 사용자로부터 음성을 들을수 있도록 함
+    if (msg.topic == "guest"):
+        speak("손님이 방문하였습니다.")
     pass
 
 
@@ -68,7 +69,7 @@ def answer(input_text):  # 어떤 대답을 할것인지 정의
     elif '불' in input_text:
         if '켜' in input_text:
             answer_text = "불을 켭니다"
-            client.publish("command", "ledOn")
+            client.publish("command", "ledOn")  # 조명도에 따라 다른 세기로 불 키기
         elif '꺼' in input_text:
             answer_text = "불을 끕니다"
             client.publish("command", "ledOff")
@@ -89,13 +90,19 @@ def answer(input_text):  # 어떤 대답을 할것인지 정의
 
 
 def speak(text):  # 소리내어 읽기 (TTS)
-    print('[인공지능] ' + text)  # 인공지응이 하는말 텍스트 출력
-    file_name = 'voice.mp3'
+    global wait
+    wait = False  # 스피커가 말하는 동안은 명령 수신x
+    print('[인공지능] ' + text)  # 인공지능이 하는말 텍스트 출력
+    if "손님" in text:
+        file_name = 'voice2.mp3'  # 음성파일 중복 삭제로 인한 오류를 해결하기 위함
+    else:
+        file_name = 'voice.mp3'
     tts = gTTS(text=text, lang='ko')  # 한글로 저장
     tts.save(file_name)  # file_name으로 해당 mp3파일 저장
     playsound(file_name)  # 저장한 mp3파일을 읽어줌
     if os.path.exists(file_name):  # file_name 파일이 존재한다면
         os.remove(file_name)  # 실행 이후 mp3 파일 제거
+        wait = True
 
 
 # 음성 명령 권한을 회수하는 메소드
