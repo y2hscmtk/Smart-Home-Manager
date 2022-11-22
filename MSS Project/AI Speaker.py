@@ -12,6 +12,7 @@ import paho.mqtt.client as mqtt
 isCall = False  # 호출어가 명령된 상태인지 확인
 wai = True  # mqtt 수신 명령을 말하는동안 스피커가 말하는 소리를 음성으로 인식하지 않도록
 power = True  # 스피커의 전원에 해당
+guest = True  # 손님 방문에 대한 정보를 알렸는지 여부를 저장
 answer_text = '입력이 되지 않았습니다'
 r = sr.Recognizer()
 # = sr.Microphone()  # 마이크에 해당
@@ -23,20 +24,26 @@ broker_address = "192.168.216.87"  # input("브로커 IP>>")
 def onConnect(client, userdata, flag, rc):
     if (rc == 0):
         print(" 연결되었습니다")
-        client.subscribe("temperature", qos=0)  # 온습도 정보
+        client.subscribe("temperature", qos=0)  # 온도 정보
+        client.subscribe("humidity", qos=0)  # 습도 정보
         client.subscribe("guest", qos=0)  # 손님 방문 유무
     pass  # 이것은 더미다 . 보통 함수 onConnect 의 끝임을 표시 함
 
 
 def onMessage(client, userdata, msg):
-    # global distanceLabel
+    global guest
     command = str(msg.payload.decode("utf-8"))  # 소수점 제거
     # 이미지 데이터가 바이트 배열로 도착, 이것은 보내는쪽에서 바이트배열로 보내야함을 의미함
     if (msg.topic == "temperature"):
-        #print("현재 날씨 " + command)
-        speak("현재 날씨는 " + command + "도 입니다.")
+        speak("현재 온도는 " + command + "도 이며")
+    if (msg.topic == "humidity"):
+        speak("현재 습도는 " + command + "입니다.")
     if (msg.topic == "guest"):
-        speak("손님이 방문하였습니다.")
+        if guest:  # 방문정보를 아직 알린적 없다면
+            speak("손님이 방문하였습니다.")
+            guest = False  # 알렸다고 표시 => 중복 알림 방지
+            start_time = threading.Timer(60, reset_guest)  # 1분 후 알림정보 리셋
+            start_time.start()
     pass
 
 
@@ -48,7 +55,8 @@ def listen(recognizer, audio):  # 음성 인식 (듣기 )
 
         # mqtt 수신 명령에 대한 처리
         if '날씨' in text:
-            client.publish("command", "temperature", qos=0)
+            client.publish("command", "temperature", qos=0)  # 온도 정보 요구
+            client.publish("command", "humidity", qos=0)  # 습도 정보 요구
             wait = False  # 날씨 정보에 관해 스피커가 말하는것을 음성명령으로 인식하지 않도록
         else:  # mqtt 송수신 명령 이외의 명령의 경우 => 불 켜줘, 등~
             answer(text)
@@ -73,8 +81,13 @@ def answer(input_text):  # 어떤 대답을 할것인지 정의
         elif '꺼' in input_text:
             answer_text = "불을 끕니다"
             client.publish("command", "ledOff")
-    elif '환율' in input_text:
-        answer_text = "원 달러 환율은 1400원입니다."
+    elif '감시' in input_text:
+        if '켜' in input_text:
+            answer_text = "CCTV를 킵니다. 모바일 리모컨에서 확인하세요"
+            client.publish("command", "cctvOn")
+        elif '꺼' in input_text:
+            answer_text = "CCTV를 끕니다."
+            client.publish("command", "cctvOff")
     elif '고마워' in input_text:
         answer_text = "별 말씀을요."
     elif '종료' in input_text:
@@ -84,8 +97,8 @@ def answer(input_text):  # 어떤 대답을 할것인지 정의
         # stop_listening(wait_for_stop=False)  # 더이상 듣지 않음
     elif '자비스' in input_text:
         answer_text = "부르셨나요?"
-    # else:
-    #     answer_text = "잘 이해하지 못했어요."
+    else:
+        answer_text = "잘 이해하지 못했어요."
     speak(answer_text)
 
 
@@ -108,8 +121,13 @@ def speak(text):  # 소리내어 읽기 (TTS)
 # 음성 명령 권한을 회수하는 메소드
 def reset_mode():
     global isCall
-    #print("다시 시도하세요")
     isCall = False
+
+
+# 손님 방문 알림에 대한 정보를 리셋
+def reset_guest():
+    global guest
+    guest = True
 
 
 # MQTT 제어
