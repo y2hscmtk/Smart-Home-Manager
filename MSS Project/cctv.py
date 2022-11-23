@@ -20,7 +20,7 @@ def on_message(client, userdata, msg):
         print("cctv Off")
         flag = False
 
-
+# 별도의 라즈베리 파이에서 작동하는 경우
 if __name__ == '__main__':
     broker_ip = "localhost"  # 현재 이 컴퓨터를 브로커로 설정
     client = mqtt.Client()
