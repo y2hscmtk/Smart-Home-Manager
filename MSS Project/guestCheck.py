@@ -12,12 +12,6 @@ GPIO.setup(trig, GPIO.OUT)
 GPIO.setup(echo, GPIO.IN)
 GPIO.output(trig, False)
 
-ip = "localhost"
-
-client = mqtt.Client()
-client.connect(ip, 1883)
-
-client.loop_start()
 
 
 def measureDistance(trig, echo):
@@ -34,10 +28,21 @@ def measureDistance(trig, echo):
     pulse_duration = pulse_end - pulse_start
     return 340*100/2*pulse_duration
 
+# 별도의 라즈베리파이에서 독립적으로 작동되는 경우
 
-while True:
-    distance = measureDistance(trig, echo)
-    if distance < 20:  # 물체가 일정거리 이상 가까워질경우 => 손님방문
-        print("손님 방문")
-        client.publish("guest", distance, qos=0)
-        time.sleep(10)  # 손님 방문사실을 알린 이후, 중복 메세지를 보내지 않도록 하기 위함
+if __name__ == '__main__':
+    import paho.mqtt.client as mqtt  # 독립적으로 작동할때 mqtt 개별 연결
+    ip = "localhost"
+
+    client = mqtt.Client()
+    client.connect(ip, 1883)
+
+    client.loop_start()  # 비동기식으로 작동
+
+    while True:
+        distance = measureDistance()
+        if distance < 10:  # 물체가 일정거리 이상 가까워질경우 => 손님방문
+            print("손님 방문")
+            client.publish("guest", distance, qos=0)
+            client.publish("command","cctvOn",qos=0)
+            time.sleep(10)  # 손님 방문사실을 알린 이후, 중복 메세지를 보내지 [>
