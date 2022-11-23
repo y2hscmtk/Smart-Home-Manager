@@ -45,4 +45,4 @@ if __name__ == '__main__':
             print("손님 방문")
             client.publish("guest", distance, qos=0)
             client.publish("command","cctvOn",qos=0)
-            time.sleep(10)  # 손님 방문사실을 알린 이후, 중복 메세지를 보내지 [>
+            time.sleep(10)  # 손님 방문사실을 알린 이후, 중복 메세지를 보내지않도록 하기 위함
