@@ -40,7 +40,7 @@ def onMessage(client, userdata, msg):
         speak("현재 습도는 " + command + "입니다.")
     if (msg.topic == "guest"):
         if guest:  # 방문정보를 아직 알린적 없다면
-            speak("손님이 방문하였습니다.")
+            speak("손님이 방문하였습니다. 모바일 리모컨에서 확인하세요")
             guest = False  # 알렸다고 표시 => 중복 알림 방지
             start_time = threading.Timer(60, reset_guest)  # 1분 후 알림정보 리셋
             start_time.start()
@@ -95,7 +95,7 @@ def answer(input_text):  # 어떤 대답을 할것인지 정의
         isCall = False
         power = False
         # stop_listening(wait_for_stop=False)  # 더이상 듣지 않음
-    elif '자비스' in input_text:
+    elif '거북' in input_text:
         answer_text = "부르셨나요?"
     else:
         answer_text = "잘 이해하지 못했어요."
@@ -156,7 +156,7 @@ while power:
             # 사용자에게 오류사실을 알림
             speak("네트워크 오류가 발생했습니다. 지속적인 오류가 발생할 경우 관리자에게 문의하세요")
 
-        if "자비스" in text:  # 음성이 키워드일때 명령을 할수있게 변경
+        if "거북" in text:  # 음성이 키워드일때 명령을 할수있게 변경
             isCall = True
             wait = True
             speak("안녕하세요!")
