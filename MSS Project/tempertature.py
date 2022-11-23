@@ -9,12 +9,17 @@ i2c = busio.I2C(scl, sda)
 sensor = HTU21D(i2c)  # HTU21D 장치를 제어하는 객체 리턴
 
 
-# 온습도 정보 전달용
-def getTemperatureAndHumidity():
+# 온도 정보 전달용
+def getTemperature():
     temperature = int(sensor.temperature)  # HTU21D 장치로부터 온도 값 읽기
-    humidity = float(sensor.relative_humidity)  # HTU21D 장치로부터 습도 값 읽기
-    return temperature  # 우선 온도 정보만
-# , humidity  # 온습도 정보 리턴
+    return temperature
+
+
+# 습도 정보 전달용
+def getHumidity():
+    humidity = int(sensor.relative_humidity)  # HTU21D 장치로부터 습도 값 읽기
+    return humidity
+
 
 
 # 별도 작동용 => controller로 연결하지 않고 다수의 라즈베리파이를 사용할때
@@ -25,13 +30,18 @@ def onConnect(client, userdata, flag, rc):
     pass
 
 
+
 def onMessage(client, userdata, msg):
     command = str(msg.payload.decode("utf-8"))
     if command == 'temperature':
         print("온도 정보 전달 완료")
-        print(getTemperatureAndHumidity())
+        print( getTemperature())
         client.publish(
-            "temperature", getTemperatureAndHumidity(), qos=0)
+            "temperature", getTemperature(), qos=0)
+    elif command == 'humidity':
+        print("습도 정보 전달 완료")
+        print( getHumidity())
+        client.publish("humidity", getHumidity(), qos=0)
     pass
 
 
@@ -50,5 +60,8 @@ if __name__ == '__main__':
 
     while (True):
         time.sleep(0.1)  # 프로그램 종료 방지용
+
+
+
 
 
