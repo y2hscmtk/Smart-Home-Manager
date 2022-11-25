@@ -1,4 +1,4 @@
-# TTS와 STT를 활용한 인공지능과 대화하기
+# TTS와 STT를 활용한 인공지능 예시
 
 import time
 import os  # 프로그램 종료 방지용
