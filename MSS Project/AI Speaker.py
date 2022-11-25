@@ -92,8 +92,10 @@ def answer(input_text):  # 어떤 대답을 할것인지 정의
         answer_text = "별 말씀을요."
     elif '종료' in input_text:
         answer_text = "다음에 또 만나요."
+        
         isCall = False
         power = False
+        wait = False
         # stop_listening(wait_for_stop=False)  # 더이상 듣지 않음
     elif '거북' in input_text:
         answer_text = "부르셨나요?"
@@ -174,5 +176,9 @@ while power:
                 command = r.listen(source)  # 마이크로부터 음성 듣기
                 listen(r, command)
 
-client.disconnect()
 client.loop_stop()
+client.publish("command","ledOff")
+client.publish("command","cctvOff")
+
+client.disconnect()
+
