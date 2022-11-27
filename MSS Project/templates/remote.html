@@ -16,11 +16,25 @@
         });
         </script>
         <style>
-            canvas {background-color:lightblue}
+            #myCanvas{
+                position: relative;
+                border: 3px solid black;
+                background-color:white
+            }
+            body{
+                background-color: gray;
+            }
+            #startBtn,#endBtn{
+                position: relative;
+                bottom: 10px;
+            }
+            #title{
+                color:green; font-size:40px; text-shadow:2px 2px white
+            }
         </style>
     </head>
     <body>
-        <h3>모바일 리모컨</h3>
+        <h3 id="title">모바일 리모컨</h3>
         <hr>
         <form id="connection-form">
             <b>브로커 IP:</b>
@@ -30,25 +44,20 @@
             <input type="button" onclick="startDisconnect()" value="Disconnect">
         </form>
         <hr>
-        <form id="remote-control-form">
-            <h3>전등 조작</h3>
-            <label>on <input type="radio" name="led" value="1" onchange="publish('command', 'ledOn')"></label>
-            <label>off <input type="radio" name="led" value="0" checked onchange="publish('command', 'ledOff')"><br><br></label>
-            <hr>
-            <h3>날씨 확인</h3>
-            <input type="button" onclick="getTemperature()" value="날씨 확인">
-        </form>
+        <h3>전등 조작 :  <label>on <input type="radio" name="led" value="1" onchange="publish('command', 'ledOn')"></label>
+        <label>off <input type="radio" name="led" value="0" checked onchange="publish('command', 'ledOff')"><br><br></label></h3>
+        <hr>
+        <h3>실내 온도/습도 <input type="button" onclick="getTemperature()" value="확인하기"></h3>
         <br>
         <div id="temperature"></div>
         <div id="humidity"></div>
         <hr>
         <h3>CCTV(use OpenCV)</h3>
-        <input type="button" onclick="recognizeStart()" value="시작">
-        <input type="button" onclick="recognizeStop()" value="종료">
+        <input id ="startBtn" type="button" onclick="recognizeStart()" value="시작">
+        <input id ="endBtn" type="button" onclick="recognizeStop()" value="종료">
         <form>
             <canvas id="myCanvas" width="320" height="240"></canvas>
         </form>
         <div id="messages"></div>
     </body>
 </html>
-
